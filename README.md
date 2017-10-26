@@ -166,5 +166,10 @@ If all went correctly, you'll be able to see a locker at the side of your page, 
 
 This tutorial requires more than the average knowledge, and should be read carefully before you make any mistake that can ruin the state of your Virtual Machine.
 
+You can find more informations about RStudio Server, Shiny Server, and how to setup the reverse proxy in both nginx and apache using the links below:
 
-# IN DEVELOPMENT!
+- RStudio Server documentation (http://docs.rstudio.com/ide/server-pro/)
+- Shiny Server documentation (http://docs.rstudio.com/shiny-server/)
+- Configuring Reverse Proxy with RStudio Servers ([here](https://support.rstudio.com/hc/en-us/articles/213733868-Running-Shiny-Server-with-a-Proxy))
+
+Thanks! Luis Paese
