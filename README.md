@@ -9,7 +9,7 @@ This tutorial was developed using code run at a Linux Trusty (14.04) Virtual Mac
 
 ### Disclaimer
 
-The actions of this tutorial imply knowledge from the user, and are more complicated to perform. Take care not to brick your Virtual Machine by running code unadvertedly!
+The actions of this tutorial imply knowledge from the user, and are more complicated to perform. Take care not to brick your Virtual Machine by running code unadvertedly! Also, is indicated to create an image of your VM instance before trying this tutorial.
 
 # The First Steps
 
@@ -79,5 +79,92 @@ map $http_upgrade $connection_upgrade {
 # Virtual Host Configs
 ##
 ```
+
+After that, you've mapped the connection, now it's time to insert the reverse proxy codes in order to allow the connection to be securely made. Go to the folder `/etc/nginx/sites-available` and delete the default file by running:
+
+```
+sudo rm default
+```
+
+Now you can create the file that will store all the configurations used by the Shiny/Rstudio Servers running: `sudo nano shiny-server`. Below lies the code that will run the connections to, and from the NGINX server.
+
+```
+server {
+   listen 80;
+   server_name yourdomain.com www.yourdomain.com;
+   return 301 https://$server_name$request_uri;
+}
+
+server {
+   listen 443 ssl;
+   server_name yourdomain.com www.yourdomain.com;
+   ssl_certificate /etc/letsencrypt/live/yourdomain.com/fullchain.pem;
+   ssl_certificate_key /etc/letsencrypt/live/yourdomain.com/privkey.pem;
+   ssl_protocols TLSv1 TLSv1.1 TLSv1.2;
+   ssl_prefer_server_ciphers on;
+   ssl_ciphers AES256+EECDH:AES256+EDH:!aNULL;
+ 
+   location / {
+       proxy_pass http://localhost:3838;
+       proxy_redirect http://localhost:3838/ https://$host/;
+       proxy_http_version 1.1;
+       proxy_set_header Upgrade $http_upgrade;
+       proxy_set_header Connection $connection_upgrade;
+       proxy_read_timeout 20d;
+   }
+}
+
+server {
+   listen 80;
+   server_name rstudio.yourdomain.com;
+   return 301 https://$server_name$request_uri;
+}
+
+server {
+   listen 443 ssl;
+   server_name rstudio.yourdomain.com;
+   ssl_certificate /etc/letsencrypt/live/rstudio.yourdomain.com/fullchain.pem;
+   ssl_certificate_key /etc/letsencrypt/live/rstudio.yourdomain.com/privkey.pem;
+   ssl_protocols TLSv1 TLSv1.1 TLSv1.2;
+   ssl_prefer_server_ciphers on;
+   ssl_ciphers AES256+EECDH:AES256+EDH:!aNULL;
+
+   location / {
+      proxy_pass http://localhost:8787;
+      proxy_redirect http://localhost:8787/ https://$host/;
+      proxy_http_version 1.1;
+      proxy_set_header Upgrade $http_upgrade;
+      proxy_set_header Connection $connection_upgrade;
+      proxy_read_timeout 20d;
+   }
+}
+```
+
+After creating this file, you need to connect it to the sites-enabled feature by running:
+
+```
+ln -s /etc/nginx/sites-available/shiny-server /etc/nginx/sites-enabled/shiny-server
+```
+
+You can check the consistency of your NGINX configuration running:
+
+```
+sudo nginx -t
+```
+
+If all went correctly, you can restart your NGINX server with the code:
+
+```
+sudo /etc/init.d/nginx restart
+```
+
+## Checking connection
+
+If all went correctly, you'll be able to see a locker at the side of your page, when you access both `yourdomain.com` and `rstudio.yourdomain.com` declaring that your page is securely connected to the network.
+
+# Final Remarks
+
+This tutorial requires more than the average knowledge, and should be read carefully before you make any mistake that can ruin the state of your Virtual Machine.
+
 
 # IN DEVELOPMENT!
